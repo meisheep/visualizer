@@ -201,6 +201,24 @@ void serial_readwrite_task(void *pvParameters)
 	}
 }
 
+void print_taskname_task(void *pvParameters)
+{
+	while (1) {
+		char* taskname = pcTaskGetTaskName(NULL);
+
+		while(*taskname) {
+			send_byte(*taskname);
+			taskname++;
+		}
+
+		send_byte('\r');
+		send_byte('\n');
+
+		/* Wait one second. */
+		vTaskDelay(100);
+	}
+}
+
 int main()
 {
 	logfile = open("log", 4);
@@ -247,6 +265,16 @@ int main()
 	            (signed portCHAR *) "Serial Read/Write",
 	            512 /* stack size */, NULL,
 	            tskIDLE_PRIORITY + 10, NULL);
+
+	/* Create two periodical task to observe the visualization outcome by grasp */
+	xTaskCreate(print_taskname_task,
+				(signed portCHAR *) "Task 1",
+				512 /* stack depth */, NULL,
+				tskIDLE_PRIORITY + 5, NULL);
+	xTaskCreate(print_taskname_task,
+				(signed portCHAR *) "Task 2",
+				512 /* stack depth */, NULL,
+				tskIDLE_PRIORITY + 5, NULL);
 
 	/* Start running the tasks. */
 	vTaskStartScheduler();
